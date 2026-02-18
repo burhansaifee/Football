@@ -13,6 +13,8 @@ const connectDB = require('./config/db');
 
 // Initialize app
 const app = express();
+// Trust proxy (Required for Render/Heroku/etc where app is behind a load balancer)
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 
 // Connect to database
@@ -27,13 +29,13 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "https://ui-avatars.com", "https://cdn-icons-png.flaticon.com", "https://images.unsplash.com"],
-            connectSrc: ["'self'", "ws:", "wss:", "http://localhost:5000", "http://127.0.0.1:5000"]
+            connectSrc: ["'self'", "ws:", "wss:", "http://localhost:5001", "http://127.0.0.1:5001", "https://football-9cfe.onrender.com", "wss://football-9cfe.onrender.com"]
         }
     }
 }));
 
 // CORS Configuration
-const allowedOrigins = process.env.CLIENT_URL ? [process.env.CLIENT_URL] : ["http://localhost:5173", "http://127.0.0.1:5173"];
+const allowedOrigins = process.env.CLIENT_URL ? [process.env.CLIENT_URL] : ["http://localhost:5173", "http://127.0.0.1:5173", "https://football-9cfe.onrender.com"];
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin) return callback(null, true);
