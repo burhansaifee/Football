@@ -1,0 +1,161 @@
+require('dotenv').config();
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const cors = require('cors');
+const helmet = require('helmet');
+const xss = require('xss-clean');
+const mongoSanitize = require('express-mongo-sanitize');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
+const path = require('path');
+const connectDB = require('./config/db');
+
+// Initialize app
+const app = express();
+const server = http.createServer(app);
+
+// Connect to database
+connectDB();
+
+// Security Middleware
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdnjs.cloudflare.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            imgSrc: ["'self'", "data:", "https://ui-avatars.com", "https://cdn-icons-png.flaticon.com", "https://images.unsplash.com"],
+            connectSrc: ["'self'", "ws:", "wss:", "http://localhost:5000", "http://127.0.0.1:5000"]
+        }
+    }
+}));
+
+// CORS Configuration
+const allowedOrigins = process.env.CLIENT_URL ? [process.env.CLIENT_URL] : ["http://localhost:5173", "http://127.0.0.1:5173"];
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            return callback(null, true);
+        }
+        return callback(null, true);
+    },
+    credentials: true
+}));
+
+// Body Parser (Must be before sanitizers)
+app.use(express.json());
+
+// Sanitization & Compression
+app.use(xss());
+app.use(mongoSanitize());
+app.use(compression());
+
+// Rate Limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000,
+    message: 'Too many requests from this IP, please try again later.'
+});
+app.use('/api', limiter);
+
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/players', require('./routes/players'));
+app.use('/api/auction', require('./routes/auction'));
+app.use('/api/users', require('./routes/users'));
+
+// Serve static assets in production
+// if (process.env.NODE_ENV === 'production') {
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+app.get('*', (req, res) => {
+    // Exclude API routes from wildcard catch-all
+    if (req.path.startsWith('/api')) {
+        return res.status(404).json({ error: 'API route not found' });
+    }
+    res.sendFile(path.resolve(__dirname, '../client/dist', 'index.html'));
+});
+// }
+
+// Socket.io for real-time bidding
+const io = socketIo(server, {
+    cors: {
+        origin: "*", // Allow all origins for socket to avoid connection issues in prod/dev mix
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+});
+app.set('io', io);
+
+const Player = require('./models/Player');
+const User = require('./models/User');
+const Bid = require('./models/Bid');
+
+io.on('connection', (socket) => {
+    console.log('👤 New client connected:', socket.id);
+
+    // Place bid
+    socket.on('place-bid', async (data) => {
+        try {
+            const { playerId, userId, amount } = data;
+
+            const player = await Player.findById(playerId);
+            const user = await User.findById(userId);
+
+            // Validate bid
+            if (!player || player.status !== 'in-auction') {
+                socket.emit('bid-error', { message: 'Player not in auction' });
+                return;
+            }
+
+            if (amount <= player.currentPrice) {
+                socket.emit('bid-error', { message: 'Bid must be higher than current price' });
+                return;
+            }
+
+            if (amount > user.budget) {
+                socket.emit('bid-error', { message: 'Insufficient budget' });
+                return;
+            }
+
+            // Update player
+            player.currentPrice = amount;
+            player.currentBidder = userId;
+            await player.save();
+
+            // Save bid history
+            const bid = new Bid({
+                player: playerId,
+                bidder: userId,
+                amount
+            });
+            await bid.save();
+
+            // Broadcast to all clients
+            const updatedPlayer = await Player.findById(playerId)
+                .populate('currentBidder', 'username teamName');
+
+            io.emit('bid-update', {
+                player: updatedPlayer,
+                bidder: user.teamName || user.username,
+                amount
+            });
+
+        } catch (error) {
+            socket.emit('bid-error', { message: error.message });
+        }
+    });
+
+    socket.on('disconnect', () => {
+        console.log('👋 Client disconnected:', socket.id);
+    });
+});
+
+// Start server
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+});
