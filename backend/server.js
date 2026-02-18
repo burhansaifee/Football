@@ -68,17 +68,24 @@ app.use('/api/auction', require('./routes/auction'));
 app.use('/api/users', require('./routes/users'));
 
 // Serve static assets in production
-// if (process.env.NODE_ENV === 'production') {
-app.use(express.static(path.join(__dirname, '../client/dist')));
+// Serve static assets in production
+const distPath = path.join(__dirname, '../client/dist');
+const fs = require('fs');
+if (fs.existsSync(distPath)) {
+    app.use(express.static(distPath));
 
-app.get('*', (req, res) => {
-    // Exclude API routes from wildcard catch-all
-    if (req.path.startsWith('/api')) {
-        return res.status(404).json({ error: 'API route not found' });
-    }
-    res.sendFile(path.resolve(__dirname, '../client/dist', 'index.html'));
-});
-// }
+    app.get('*', (req, res) => {
+        // Exclude API routes from wildcard catch-all
+        if (req.path.startsWith('/api')) {
+            return res.status(404).json({ error: 'API route not found' });
+        }
+        res.sendFile(path.resolve(distPath, 'index.html'));
+    });
+} else {
+    app.get('/', (req, res) => {
+        res.send('API is running successfully. (Frontend not served from backend)');
+    });
+}
 
 // Socket.io for real-time bidding
 const io = socketIo(server, {
