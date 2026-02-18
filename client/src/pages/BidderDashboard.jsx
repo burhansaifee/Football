@@ -14,7 +14,16 @@ import {
 } from 'lucide-react';
 import api from '../api';
 
-const socket = io();
+// Determine socket URL: use VITE_API_URL (without /api suffix) if set, otherwise default to window.location.origin
+const getSocketUrl = () => {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    if (apiUrl) {
+        return apiUrl.replace(/\/api$/, '');
+    }
+    return undefined;
+};
+
+const socket = io(getSocketUrl());
 
 const BidderDashboard = () => {
     const navigate = useNavigate();

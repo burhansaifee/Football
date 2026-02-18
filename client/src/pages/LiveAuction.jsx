@@ -3,7 +3,17 @@ import { useNavigate, Link } from 'react-router-dom';
 import io from 'socket.io-client';
 import api from '../api';
 
-const socket = io();
+// Determine socket URL: use VITE_API_URL (without /api suffix) if set, otherwise default to window.location.origin
+const getSocketUrl = () => {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    if (apiUrl) {
+        // Remove '/api' from the end if it exists to get the root server URL
+        return apiUrl.replace(/\/api$/, '');
+    }
+    return undefined; // Let Socket.io auto-detect (window.location)
+};
+
+const socket = io(getSocketUrl());
 
 const LiveAuction = () => {
     const navigate = useNavigate();
