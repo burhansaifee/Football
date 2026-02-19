@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import api from '../api';
+import socket from '../socket';
 import {
     Users,
     Gavel,
@@ -17,7 +18,7 @@ import {
     Award
 } from 'lucide-react';
 
-const socket = io('http://localhost:5000');
+// Socket instance is now imported from ../socket.js
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
