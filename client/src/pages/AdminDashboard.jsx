@@ -15,7 +15,10 @@ import {
     StopCircle,
     Search,
     Shield,
-    Award
+    Award,
+    Eye,
+    Menu,
+    X
 } from 'lucide-react';
 
 // Socket instance is now imported from ../socket.js
@@ -25,8 +28,10 @@ const AdminDashboard = () => {
     const [user] = useState(() => JSON.parse(localStorage.getItem('user')));
     const [players, setPlayers] = useState([]);
     const [teams, setTeams] = useState([]);
+
     const [alert, setAlert] = useState({ message: '', type: '' });
     const [searchTerm, setSearchTerm] = useState('');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Form states
     const [newPlayer, setNewPlayer] = useState({ name: '', position: '', basePrice: '', imageUrl: '' });
@@ -222,17 +227,34 @@ const AdminDashboard = () => {
 
     return (
         <div className="dashboard-layout">
+            {/* Mobile Sidebar Overlay */}
+            <div
+                className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`}
+                onClick={() => setIsSidebarOpen(false)}
+            />
+
             {/* Sidebar */}
-            <aside className="sidebar glass">
+            <aside className={`sidebar glass ${isSidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
                     <Shield className="logo-icon" size={32} color="var(--primary)" />
                     <h2>Admin Panel</h2>
+                    <button
+                        className="mobile-menu-btn hidden-desktop"
+                        onClick={() => setIsSidebarOpen(false)}
+                        style={{ marginLeft: 'auto' }}
+                    >
+                        <X size={24} />
+                    </button>
                 </div>
 
                 <div className="sidebar-menu">
                     <div className="menu-item active">
                         <TrendingUp size={20} />
                         <span>Dashboard</span>
+                    </div>
+                    <div className="menu-item" onClick={() => navigate('/auction')}>
+                        <Eye size={20} />
+                        <span>Watch Auction</span>
                     </div>
                 </div>
 
@@ -247,6 +269,12 @@ const AdminDashboard = () => {
             {/* Main Content */}
             <main className="main-content">
                 <header className="top-header glass">
+                    <button
+                        className="mobile-menu-btn hidden-desktop"
+                        onClick={() => setIsSidebarOpen(true)}
+                    >
+                        <Menu size={24} />
+                    </button>
                     <div className="welcome-text">
                         <h1>Welcome back, {user?.username} 👋</h1>
                         <p>Manage your auction efficiently</p>

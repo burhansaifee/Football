@@ -10,7 +10,9 @@ import {
     Gavel,
     Trophy,
     Shield,
-    User
+    User,
+    Menu,
+    X
 } from 'lucide-react';
 import api from '../api';
 import socket from '../socket';
@@ -25,6 +27,7 @@ const BidderDashboard = () => {
     const [players, setPlayers] = useState([]);
     const [alert, setAlert] = useState({ message: '', type: '' });
     const [bidAmount, setBidAmount] = useState('');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const showAlert = (message, type) => {
         setAlert({ message, type });
@@ -125,11 +128,24 @@ const BidderDashboard = () => {
 
     return (
         <div className="dashboard-layout">
+            {/* Mobile Sidebar Overlay */}
+            <div
+                className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`}
+                onClick={() => setIsSidebarOpen(false)}
+            />
+
             {/* Sidebar */}
-            <aside className="sidebar">
+            <aside className={`sidebar glass ${isSidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
                     <Trophy className="logo-icon" size={32} color="#6366f1" />
                     <h2>TeamZone</h2>
+                    <button
+                        className="mobile-menu-btn hidden-desktop"
+                        onClick={() => setIsSidebarOpen(false)}
+                        style={{ marginLeft: 'auto' }}
+                    >
+                        <X size={24} />
+                    </button>
                 </div>
 
                 <nav className="sidebar-menu">
@@ -151,6 +167,12 @@ const BidderDashboard = () => {
             <main className="main-content">
                 {/* Header */}
                 <header className="top-header">
+                    <button
+                        className="mobile-menu-btn hidden-desktop"
+                        onClick={() => setIsSidebarOpen(true)}
+                    >
+                        <Menu size={24} />
+                    </button>
                     <div className="welcome-text">
                         <h1>Team Dashboard</h1>
                         <p>Manage your squad and bid efficiently</p>
@@ -229,7 +251,7 @@ const BidderDashboard = () => {
                                         style={{ width: '120px', height: '120px', borderRadius: '16px', objectFit: 'cover', border: '3px solid var(--highlight)' }}
                                     />
 
-                                    <div style={{ flex: 1 }}>
+                                    <div style={{ flex: 1, minWidth: '200px' }}>
                                         <h2 style={{ fontSize: '1.8rem', color: 'var(--primary)', marginBottom: '5px' }}>{auctionPlayer.name}</h2>
                                         <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
                                             <span className="badge">{auctionPlayer.position}</span>
@@ -248,18 +270,18 @@ const BidderDashboard = () => {
                                             )}
                                         </div>
 
-                                        <div className="bid-controls" style={{ display: 'flex', gap: '12px' }}>
+                                        <div className="bid-controls" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                                             <input
                                                 type="number"
                                                 placeholder="Enter Amount"
                                                 value={bidAmount}
                                                 onChange={(e) => setBidAmount(e.target.value)}
-                                                style={{ flex: 1, padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-dark)' }}
+                                                style={{ flex: 1, padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-dark)', minWidth: '120px' }}
                                             />
                                             <button
                                                 className="btn-submit"
                                                 onClick={() => placeBid(auctionPlayer._id, auctionPlayer.currentPrice)}
-                                                style={{ width: 'auto', padding: '0 30px' }}
+                                                style={{ width: 'auto', padding: '0 30px', flex: 1, whiteSpace: 'nowrap' }}
                                             >
                                                 Place Bid
                                             </button>
@@ -282,18 +304,18 @@ const BidderDashboard = () => {
                             </div>
 
                             {myTeam.length > 0 ? (
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '20px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '16px' }}>
                                     {myTeam.map(player => (
-                                        <div key={player._id} style={{ background: 'var(--bg-main)', borderRadius: '16px', padding: '20px', border: '1px solid var(--border-color)', textAlign: 'center' }}>
+                                        <div key={player._id} style={{ background: 'var(--bg-main)', borderRadius: '16px', padding: '16px', border: '1px solid var(--border-color)', textAlign: 'center' }}>
                                             <img
                                                 src={player.imageUrl || 'https://cdn-icons-png.flaticon.com/512/21/21104.png'}
                                                 alt={player.name}
                                                 style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', marginBottom: '10px', display: 'block', margin: '0 auto 10px' }}
                                             />
-                                            <h4 style={{ color: 'var(--text-dark)', marginBottom: '5px', fontWeight: '700' }}>{player.name}</h4>
-                                            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '10px' }}>{player.position}</div>
-                                            <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '0.9rem', color: 'var(--highlight)', fontWeight: '600' }}>
-                                                {player.soldPrice?.toLocaleString()} coins
+                                            <h4 style={{ color: 'var(--text-dark)', marginBottom: '5px', fontWeight: '700', fontSize: '0.95rem' }}>{player.name}</h4>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>{player.position}</div>
+                                            <div style={{ textAlign: 'center', marginTop: '8px', fontSize: '0.85rem', color: 'var(--highlight)', fontWeight: '600' }}>
+                                                {player.soldPrice?.toLocaleString()}
                                             </div>
                                         </div>
                                     ))}

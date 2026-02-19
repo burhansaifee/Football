@@ -145,7 +145,7 @@ const LiveAuction = () => {
             {alert.message && <div className={`alert ${alert.type}`}>{alert.message}</div>}
 
             {/* Spotlight Section */}
-            <div className="auction-spotlight" id="auctionSpotlight" style={{ display: 'flex' }}>
+            <div className="auction-spotlight" id="auctionSpotlight" style={{ display: 'flex', justifyContent: 'center' }}>
                 {auctionPlayer ? (
                     <div className="player-card" style={{ width: '100%', maxWidth: '500px' }}>
                         <img
