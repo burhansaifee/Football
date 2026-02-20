@@ -68,6 +68,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/players', require('./routes/players'));
 app.use('/api/auction', require('./routes/auction'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/matches', require('./routes/matches'));
 
 // Serve static assets in production
 // Serve static assets in production

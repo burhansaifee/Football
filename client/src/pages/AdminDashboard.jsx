@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import api from '../api';
 import socket from '../socket';
+
 import {
     Users,
     Gavel,
@@ -18,7 +19,8 @@ import {
     Award,
     Eye,
     Menu,
-    X
+    X,
+    Swords
 } from 'lucide-react';
 
 // Socket instance is now imported from ../socket.js
@@ -32,6 +34,7 @@ const AdminDashboard = () => {
     const [alert, setAlert] = useState({ message: '', type: '' });
     const [searchTerm, setSearchTerm] = useState('');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
 
     // Form states
     const [newPlayer, setNewPlayer] = useState({ name: '', position: '', basePrice: '', imageUrl: '' });
@@ -255,6 +258,10 @@ const AdminDashboard = () => {
                     <div className="menu-item" onClick={() => navigate('/auction')}>
                         <Eye size={20} />
                         <span>Watch Auction</span>
+                    </div>
+                    <div className="menu-item" onClick={() => navigate('/matches')}>
+                        <Swords size={20} />
+                        <span>Matches & Standings</span>
                     </div>
                 </div>
 
@@ -484,6 +491,8 @@ const AdminDashboard = () => {
                                 ))}
                             </div>
                         </section>
+
+
                     </div>
                 </div>
             </main>

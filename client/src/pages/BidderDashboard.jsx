@@ -12,10 +12,12 @@ import {
     Shield,
     User,
     Menu,
-    X
+    X,
+    Swords
 } from 'lucide-react';
 import api from '../api';
 import socket from '../socket';
+
 
 // Socket instance is now imported from ../socket.js
 
@@ -152,6 +154,10 @@ const BidderDashboard = () => {
                     <div className="menu-item active">
                         <LayoutDashboard size={20} />
                         <span>Dashboard</span>
+                    </div>
+                    <div className="menu-item" onClick={() => navigate('/matches')}>
+                        <Swords size={20} />
+                        <span>Matches & Standings</span>
                     </div>
                 </nav>
 
@@ -349,6 +355,8 @@ const BidderDashboard = () => {
                                 )}
                             </div>
                         </div>
+
+
                     </div>
                 </div>
             </main>
