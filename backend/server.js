@@ -29,7 +29,7 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "https://ui-avatars.com", "https://cdn-icons-png.flaticon.com", "https://images.unsplash.com"],
-            connectSrc: ["'self'", "ws:", "wss:", "http://localhost:5001", "http://127.0.0.1:5001", "https://football-9cfe.onrender.com", "wss://football-9cfe.onrender.com"]
+            connectSrc: ["'self'", "ws:", "wss:", "https://*.onrender.com", "wss://*.onrender.com", "https://*.vercel.app", "http://localhost:*", "http://127.0.0.1:*"]
         }
     }
 }));
