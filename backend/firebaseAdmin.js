@@ -7,7 +7,7 @@ try {
 
     if (serviceAccountBase64) {
         console.log("Loading Firebase Service Account from Base64 String...");
-        const decodedJson = Buffer.from(serviceAccountBase64, 'base64').toString('utf8');
+        const decodedJson = Buffer.from(serviceAccountBase64.replace(/\s/g, ''), 'base64').toString('utf8');
         const serviceAccount = JSON.parse(decodedJson);
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
