@@ -6,13 +6,21 @@ try {
     const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
 
     if (serviceAccountBase64) {
-        console.log("Loading Firebase Service Account from Base64 String...");
-        const decodedJson = Buffer.from(serviceAccountBase64.replace(/\s/g, ''), 'base64').toString('utf8');
-        const serviceAccount = JSON.parse(decodedJson);
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount)
-        });
-        console.log("Firebase Admin Initialized successfully from Base64 String.");
+        const cleanedBase64 = serviceAccountBase64.replace(/\s/g, '');
+        console.log(`Loading Firebase from Base64 (Length: ${cleanedBase64.length}, Start: ${cleanedBase64.substring(0, 10)}...)`);
+
+        try {
+            const decodedJson = Buffer.from(cleanedBase64, 'base64').toString('utf8');
+            const serviceAccount = JSON.parse(decodedJson);
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount)
+            });
+            console.log("Firebase Admin Initialized successfully.");
+        } catch (innerError) {
+            const decodedSnippet = Buffer.from(cleanedBase64, 'base64').toString('utf8').substring(0, 50);
+            console.error(`FAILED TO PARSE FIREBASE JSON. Decoded snippet: "${decodedSnippet}..."`);
+            throw innerError;
+        }
     } else if (serviceAccountJsonStr) {
         console.log("Loading Firebase Service Account from JSON String...");
         const serviceAccount = JSON.parse(serviceAccountJsonStr);
