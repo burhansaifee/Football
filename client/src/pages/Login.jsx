@@ -34,10 +34,18 @@ const Login = () => {
         setLoading(true);
 
         try {
-            // Intelligent Username parsing: Support legacy/team usernames by appending the hidden dummy email suffix
             let loginIdentifier = loginData.email.trim();
+
+            // Resolve Username to Email if no '@' is present
             if (!loginIdentifier.includes('@')) {
-                loginIdentifier = `${loginIdentifier.toLowerCase().replace(/[^a-z0-9]/g, '')}@bidder.local`;
+                try {
+                    const resolveRes = await api.get(`/auth/resolve-email/${encodeURIComponent(loginIdentifier)}`);
+                    loginIdentifier = resolveRes.data.email;
+                } catch (resolveError) {
+                    console.error("Username resolution failed:", resolveError);
+                    // Fallback to bidder.local for legacy support if resolution fails
+                    loginIdentifier = `${loginIdentifier.toLowerCase().replace(/[^a-z0-9]/g, '')}@bidder.local`;
+                }
             }
 
             // 1. Authenticate with Firebase

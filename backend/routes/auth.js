@@ -127,4 +127,26 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// Resolve username to email (Public endpoint to support Username login)
+router.get('/resolve-email/:identifier', async (req, res) => {
+    try {
+        const { identifier } = req.params;
+        // Search by username (case-insensitive) or email
+        const user = await User.findOne({
+            $or: [
+                { username: { $regex: new RegExp(`^${identifier}$`, 'i') } },
+                { email: identifier.toLowerCase() }
+            ]
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({ email: user.email });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
