@@ -101,7 +101,8 @@ const AdminBilling = () => {
 
         } catch (error) {
             console.error('Error starting checkout:', error);
-            setMessage('Failed to start checkout process.');
+            const errorMessage = error.response?.data?.error || error.message || 'Unknown error occurred';
+            setMessage(`Failed to start checkout process: ${errorMessage}`);
         } finally {
             setLoading(false);
         }
