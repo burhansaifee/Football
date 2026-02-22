@@ -12,8 +12,7 @@ const getSocketUrl = () => {
     // However, if we are in dev mode (localhost:5173) and backend is localhost:5000, we might need a fallback if proxy isn't set up for sockets.
     // Given the previous code used hardcoded localhost:5000, we should probably default to that if standard auto-detect fails or for specific dev scenarios.
     // But usually for deployment, we want it to be relative or based on the API URL.
-
-    return import.meta.env.DEV ? 'http://localhost:5000' : undefined;
+    return import.meta.env.DEV ? 'http://localhost:5001' : undefined;
 };
 
 const socket = io(getSocketUrl(), {

@@ -7,8 +7,7 @@ const playerSchema = new mongoose.Schema({
     },
     position: {
         type: String,
-        required: true,
-        enum: ['Forward', 'Midfielder', 'Defender', 'Goalkeeper']
+        required: true
     },
     basePrice: {
         type: Number,
@@ -41,6 +40,11 @@ const playerSchema = new mongoose.Schema({
     soldPrice: {
         type: Number,
         default: 0
+    },
+    tournamentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tournament',
+        required: true
     }
 }, { timestamps: true });
 

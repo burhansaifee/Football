@@ -48,7 +48,14 @@ app.use(cors({
 }));
 
 // Body Parser (Must be before sanitizers)
-app.use(express.json());
+// Use JSON parser for all non-webhook routes
+app.use((req, res, next) => {
+    if (req.originalUrl === '/api/payments/webhook') {
+        next();
+    } else {
+        express.json()(req, res, next);
+    }
+});
 
 // Sanitization & Compression
 app.use(xss());
@@ -69,6 +76,8 @@ app.use('/api/players', require('./routes/players'));
 app.use('/api/auction', require('./routes/auction'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/matches', require('./routes/matches'));
+app.use('/api/tournaments', require('./routes/tournaments'));
+app.use('/api/payments', require('./routes/payments'));
 
 // Serve static assets in production
 // Serve static assets in production
@@ -105,7 +114,12 @@ const User = require('./models/User');
 const Bid = require('./models/Bid');
 
 io.on('connection', (socket) => {
-    console.log('👤 New client connected:', socket.id);
+    socket.on('join-tournament', (tournamentId) => {
+        if (tournamentId) {
+            socket.join(`tournament_${tournamentId}`);
+            console.log(`Socket ${socket.id} joined tournament_${tournamentId}`);
+        }
+    });
 
     // Place bid
     socket.on('place-bid', async (data) => {
@@ -140,15 +154,17 @@ io.on('connection', (socket) => {
             const bid = new Bid({
                 player: playerId,
                 bidder: userId,
-                amount
+                amount,
+                tournamentId: user.tournamentId
             });
+            await bid.save();
             await bid.save();
 
             // Broadcast to all clients
             const updatedPlayer = await Player.findById(playerId)
                 .populate('currentBidder', 'username teamName');
 
-            io.emit('bid-update', {
+            io.to(`tournament_${user.tournamentId}`).emit('bid-update', {
                 player: updatedPlayer,
                 bidder: user.teamName || user.username,
                 amount
@@ -160,7 +176,6 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        console.log('👋 Client disconnected:', socket.id);
     });
 });
 

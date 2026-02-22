@@ -6,9 +6,15 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    password: {
+    email: {
         type: String,
-        required: true
+        required: true,
+        unique: true
+    },
+    firebaseUid: {
+        type: String,
+        required: true,
+        unique: true
     },
     role: {
         type: String,
@@ -22,6 +28,23 @@ const userSchema = new mongoose.Schema({
     budget: {
         type: Number,
         default: 100  // Starting budget: 100 coins
+    },
+    tournamentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tournament',
+        required: function () { return this.role === 'bidder'; }
+    },
+    // Admin specific fields
+    razorpayCustomerId: String,
+    razorpaySubscriptionId: String,
+    subscriptionStatus: {
+        type: String,
+        enum: ['active', 'past_due', 'canceled', 'none'],
+        default: 'none'
+    },
+    subscriptionTier: {
+        type: String,
+        default: 'free'
     },
     players: [{
         type: mongoose.Schema.Types.ObjectId,

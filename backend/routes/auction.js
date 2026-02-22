@@ -9,19 +9,19 @@ const router = express.Router();
 // Start random auction (Admin only)
 router.post('/start-random', auth, isAdmin, async (req, res) => {
     try {
-        // Check if any player is already in auction
-        const activePlayer = await Player.findOne({ status: 'in-auction' });
+        // Check if any player is already in auction for this tournament
+        const activePlayer = await Player.findOne({ status: 'in-auction', tournamentId: req.user.tournamentId });
         if (activePlayer) {
             return res.status(400).json({ error: 'Auction already in progress', player: activePlayer });
         }
 
         // Search for available players first
-        let count = await Player.countDocuments({ status: 'available' });
+        let count = await Player.countDocuments({ status: 'available', tournamentId: req.user.tournamentId });
         let statusToPick = 'available';
 
         if (count === 0) {
             // If no available, check for unsold
-            count = await Player.countDocuments({ status: 'unsold' });
+            count = await Player.countDocuments({ status: 'unsold', tournamentId: req.user.tournamentId });
             statusToPick = 'unsold';
         }
 
@@ -31,7 +31,7 @@ router.post('/start-random', auth, isAdmin, async (req, res) => {
 
         // Get random player
         const random = Math.floor(Math.random() * count);
-        const player = await Player.findOne({ status: statusToPick }).skip(random);
+        const player = await Player.findOne({ status: statusToPick, tournamentId: req.user.tournamentId }).skip(random);
 
         if (!player) {
             return res.status(404).json({ error: 'Player not found' });
@@ -44,7 +44,7 @@ router.post('/start-random', auth, isAdmin, async (req, res) => {
 
         // Notify clients
         const io = req.app.get('io');
-        io.emit('bid-update', {
+        io.to(`tournament_${req.user.tournamentId}`).emit('bid-update', {
             player: player,
             amount: player.currentPrice,
             bidder: 'System'
@@ -59,7 +59,7 @@ router.post('/start-random', auth, isAdmin, async (req, res) => {
 // Start auction for a player (Admin only)
 router.post('/start/:playerId', auth, isAdmin, async (req, res) => {
     try {
-        const player = await Player.findById(req.params.playerId);
+        const player = await Player.findOne({ _id: req.params.playerId, tournamentId: req.user.tournamentId });
 
         if (!player) {
             return res.status(404).json({ error: 'Player not found' });
@@ -75,7 +75,7 @@ router.post('/start/:playerId', auth, isAdmin, async (req, res) => {
 
         // Notify clients
         const io = req.app.get('io');
-        io.emit('bid-update', {
+        io.to(`tournament_${req.user.tournamentId}`).emit('bid-update', {
             player: player,
             amount: player.currentPrice,
             bidder: 'System'
@@ -90,7 +90,7 @@ router.post('/start/:playerId', auth, isAdmin, async (req, res) => {
 // End auction (Admin only)
 router.post('/end/:playerId', auth, isAdmin, async (req, res) => {
     try {
-        const player = await Player.findById(req.params.playerId);
+        const player = await Player.findOne({ _id: req.params.playerId, tournamentId: req.user.tournamentId });
 
         if (!player) {
             return res.status(404).json({ error: 'Player not found' });
@@ -115,7 +115,7 @@ router.post('/end/:playerId', auth, isAdmin, async (req, res) => {
 
         // Notify clients
         const io = req.app.get('io');
-        io.emit('auction-ended', {
+        io.to(`tournament_${req.user.tournamentId}`).emit('auction-ended', {
             player: player,
             winner: player.currentBidder
         });
@@ -129,7 +129,7 @@ router.post('/end/:playerId', auth, isAdmin, async (req, res) => {
 // Mark as Unsold (Admin only)
 router.post('/unsold/:playerId', auth, isAdmin, async (req, res) => {
     try {
-        const player = await Player.findById(req.params.playerId);
+        const player = await Player.findOne({ _id: req.params.playerId, tournamentId: req.user.tournamentId });
         if (!player) return res.status(404).json({ error: 'Player not found' });
 
         player.status = 'unsold';
@@ -139,8 +139,8 @@ router.post('/unsold/:playerId', auth, isAdmin, async (req, res) => {
 
         // Notify clients
         const io = req.app.get('io');
-        io.emit('auction-ended', { player, status: 'unsold' });
-        io.emit('players-update');
+        io.to(`tournament_${req.user.tournamentId}`).emit('auction-ended', { player, status: 'unsold' });
+        io.to(`tournament_${req.user.tournamentId}`).emit('players-update');
 
         res.json(player);
     } catch (error) {
@@ -152,7 +152,7 @@ router.post('/unsold/:playerId', auth, isAdmin, async (req, res) => {
 router.post('/set-price/:playerId', auth, isAdmin, async (req, res) => {
     try {
         const { newPrice } = req.body;
-        const player = await Player.findById(req.params.playerId);
+        const player = await Player.findOne({ _id: req.params.playerId, tournamentId: req.user.tournamentId });
 
         if (!player) {
             return res.status(404).json({ error: 'Player not found' });
@@ -168,7 +168,7 @@ router.post('/set-price/:playerId', auth, isAdmin, async (req, res) => {
 
         // Notify clients
         const io = req.app.get('io');
-        io.emit('bid-update', {
+        io.to(`tournament_${req.user.tournamentId}`).emit('bid-update', {
             player: player,
             amount: newPrice,
             bidder: 'Admin (Set Price)'

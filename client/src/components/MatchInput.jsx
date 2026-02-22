@@ -87,7 +87,7 @@ const MatchInput = ({ onMatchAdded }) => {
                             required
                             value={teamA}
                             onChange={(e) => setTeamA(e.target.value)}
-                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-dark)' }}
+                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-dark)' }}
                         >
                             <option value="">Select Team A</option>
                             {teams.map(team => (
@@ -103,7 +103,7 @@ const MatchInput = ({ onMatchAdded }) => {
                             required
                             value={teamB}
                             onChange={(e) => setTeamB(e.target.value)}
-                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-dark)' }}
+                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-dark)' }}
                         >
                             <option value="">Select Team B</option>
                             {teams.map(team => (
@@ -122,7 +122,7 @@ const MatchInput = ({ onMatchAdded }) => {
                             required
                             value={goalsA}
                             onChange={(e) => setGoalsA(e.target.value)}
-                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-dark)' }}
+                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-dark)' }}
                         />
                     </div>
 
@@ -136,7 +136,7 @@ const MatchInput = ({ onMatchAdded }) => {
                             required
                             value={goalsB}
                             onChange={(e) => setGoalsB(e.target.value)}
-                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-dark)' }}
+                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-dark)' }}
                         />
                     </div>
                 </div>

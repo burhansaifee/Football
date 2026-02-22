@@ -1,20 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
-import {
-    LayoutDashboard,
-    LogOut,
-    Wallet,
-    Users,
-    TrendingUp,
-    Gavel,
-    Trophy,
-    Shield,
-    User,
-    Menu,
-    X,
-    Swords
-} from 'lucide-react';
+import { DashboardLayout } from '../components/layout';
+import { Gavel, Shield, TrendingUp, Users, Wallet } from 'lucide-react';
 import api from '../api';
 import socket from '../socket';
 
@@ -65,6 +53,11 @@ const BidderDashboard = () => {
 
         loadUserData();
         loadPlayers();
+
+        // Join the specific tournament room
+        if (user?.tournamentId) {
+            socket.emit('join-tournament', user.tournamentId);
+        }
 
         socket.on('bid-update', (data) => {
             loadPlayers();
@@ -124,80 +117,25 @@ const BidderDashboard = () => {
 
     const auctionPlayer = players.find(p => p.status === 'in-auction');
 
+    // Calculate active bid amount to freeze funds dynamically
+    let activeBidAmount = 0;
+    if (auctionPlayer && auctionPlayer.currentBidder) {
+        // Handle currentBidder whether it's populated (object with _id) or just a string ID
+        const bidderId = typeof auctionPlayer.currentBidder === 'object' ? auctionPlayer.currentBidder._id : auctionPlayer.currentBidder;
+        if (bidderId === (user._id || user.id)) {
+            activeBidAmount = auctionPlayer.currentPrice;
+        }
+    }
+
+    const availableBudget = budget - activeBidAmount;
+
     // Stats
     const totalSpent = myTeam.reduce((sum, p) => sum + (p.soldPrice || 0), 0);
-    const maxBid = budget;
+    const maxBid = availableBudget;
 
     return (
-        <div className="dashboard-layout">
-            {/* Mobile Sidebar Overlay */}
-            <div
-                className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`}
-                onClick={() => setIsSidebarOpen(false)}
-            />
-
-            {/* Sidebar */}
-            <aside className={`sidebar glass ${isSidebarOpen ? 'open' : ''}`}>
-                <div className="sidebar-header">
-                    <Trophy className="logo-icon" size={32} color="#6366f1" />
-                    <h2>TeamZone</h2>
-                    <button
-                        className="mobile-menu-btn hidden-desktop"
-                        onClick={() => setIsSidebarOpen(false)}
-                        style={{ marginLeft: 'auto' }}
-                    >
-                        <X size={24} />
-                    </button>
-                </div>
-
-                <nav className="sidebar-menu">
-                    <div className="menu-item active">
-                        <LayoutDashboard size={20} />
-                        <span>Dashboard</span>
-                    </div>
-                    <div className="menu-item" onClick={() => navigate('/matches')}>
-                        <Swords size={20} />
-                        <span>Matches & Standings</span>
-                    </div>
-                </nav>
-
-                <div className="sidebar-footer">
-                    <div className="menu-item" onClick={logout} style={{ marginTop: 'auto', color: '#ef4444' }}>
-                        <LogOut size={20} />
-                        <span>Logout</span>
-                    </div>
-                </div>
-            </aside>
-
-            {/* Main Content */}
-            <main className="main-content">
-                {/* Header */}
-                <header className="top-header">
-                    <button
-                        className="mobile-menu-btn hidden-desktop"
-                        onClick={() => setIsSidebarOpen(true)}
-                    >
-                        <Menu size={24} />
-                    </button>
-                    <div className="welcome-text">
-                        <h1>Team Dashboard</h1>
-                        <p>Manage your squad and bid efficiently</p>
-                    </div>
-                    <div className="user-info">
-                        <div className="badge" style={{ display: 'flex', gap: '8px', alignItems: 'center', padding: '8px 16px' }}>
-                            <Shield size={16} color="var(--primary)" />
-                            <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
-                                {user?.teamName || user?.username}
-                            </span>
-                        </div>
-                        <img
-                            src={`https://ui-avatars.com/api/?name=${user?.username}&background=6366f1&color=fff`}
-                            alt="Profile"
-                            style={{ width: '40px', height: '40px', borderRadius: '12px' }}
-                        />
-                    </div>
-                </header>
-
+        <DashboardLayout user={user}>
+            <div className="max-w-7xl mx-auto space-y-6">
                 {alert.message && (
                     <div className={`alert-float ${alert.type}`}>
                         {alert.type === 'success' ? <TrendingUp size={18} /> : <Shield size={18} />}
@@ -213,7 +151,7 @@ const BidderDashboard = () => {
                         </div>
                         <div className="stat-info">
                             <h3>Remaining Budget</h3>
-                            <p>{budget.toLocaleString()} coins</p>
+                            <p>{availableBudget.toLocaleString()} coins</p>
                         </div>
                     </div>
 
@@ -338,20 +276,18 @@ const BidderDashboard = () => {
                             <div className="section-header">
                                 <h2><Shield size={20} color="var(--accent)" /> Upcoming Players</h2>
                             </div>
-                            <div className="teams-grid-admin">
+                            <div className="flex flex-col gap-3">
                                 {players.filter(p => p.status === 'available').slice(0, 5).map(player => (
-                                    <div key={player._id} className="team-card-mini">
-                                        <div className="team-info" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <img src={player.imageUrl || 'https://cdn-icons-png.flaticon.com/512/21/21104.png'} style={{ width: '32px', height: '32px', borderRadius: '50%' }} alt="" />
-                                            <div>
-                                                <h4>{player.name}</h4>
-                                                <div className="budget" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{player.position}</div>
-                                            </div>
+                                    <div key={player._id} className="flex items-center p-3 bg-bg-card backdrop-blur-md border border-border rounded-xl shadow-sm hover:border-accent transition-colors">
+                                        <img src={player.imageUrl || 'https://cdn-icons-png.flaticon.com/512/21/21104.png'} className="w-10 h-10 rounded-full object-cover border border-border mr-3" alt="" />
+                                        <div className="flex flex-col">
+                                            <h4 className="font-bold text-text-dark text-sm">{player.name}</h4>
+                                            <span className="text-xs font-semibold text-text-muted mt-0.5">{player.position}</span>
                                         </div>
                                     </div>
                                 ))}
                                 {players.filter(p => p.status === 'available').length === 0 && (
-                                    <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>No players available.</p>
+                                    <p className="text-text-muted text-center text-sm py-4">No players available.</p>
                                 )}
                             </div>
                         </div>
@@ -359,8 +295,8 @@ const BidderDashboard = () => {
 
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </DashboardLayout>
     );
 };
 

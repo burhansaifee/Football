@@ -15,6 +15,11 @@ const bidSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 1
+    },
+    tournamentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tournament',
+        required: true
     }
 }, { timestamps: true });
 

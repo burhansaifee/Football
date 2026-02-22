@@ -22,7 +22,8 @@ router.post('/', auth, isAdmin, async (req, res) => {
             teamB,
             goalsA,
             goalsB,
-            date: date || Date.now()
+            date: date || Date.now(),
+            tournamentId: req.user.tournamentId
         });
 
         await match.save();
@@ -42,7 +43,7 @@ router.post('/', auth, isAdmin, async (req, res) => {
 // Get all matches
 router.get('/', auth, async (req, res) => {
     try {
-        const matches = await Match.find()
+        const matches = await Match.find({ tournamentId: req.user.tournamentId })
             .populate('teamA', 'username teamName')
             .populate('teamB', 'username teamName')
             .sort({ date: -1 });
@@ -57,10 +58,10 @@ router.get('/', auth, async (req, res) => {
 router.get('/standings', auth, async (req, res) => {
     try {
         // Fetch all bidders (teams)
-        const teams = await User.find({ role: 'bidder' }).select('username teamName');
+        const teams = await User.find({ role: 'bidder', tournamentId: req.user.tournamentId }).select('username teamName');
 
         // Fetch all matches
-        const matches = await Match.find();
+        const matches = await Match.find({ tournamentId: req.user.tournamentId });
 
         // Initialize standings object
         const standingsMap = {};

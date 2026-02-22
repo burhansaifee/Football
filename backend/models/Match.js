@@ -24,6 +24,11 @@ const matchSchema = new mongoose.Schema({
     date: {
         type: Date,
         default: Date.now
+    },
+    tournamentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tournament',
+        required: true
     }
 }, { timestamps: true });
 
