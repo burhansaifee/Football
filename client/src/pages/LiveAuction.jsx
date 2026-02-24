@@ -159,6 +159,7 @@ const LiveAuction = () => {
                                 alt={auctionPlayer.name}
                                 className="player-img"
                                 style={{ width: '180px', height: '180px', objectFit: 'cover', borderRadius: '50%', border: '4px solid var(--primary)', marginBottom: '15px' }}
+                                onError={(e) => { e.target.onerror = null; e.target.src = 'https://cdn-icons-png.flaticon.com/512/21/21104.png'; }}
                             />
                             <h3 style={{ fontSize: '2rem', marginBottom: '5px' }}>{auctionPlayer.name}</h3>
                             <span className="position">{auctionPlayer.position}</span>
@@ -232,6 +233,7 @@ const LiveAuction = () => {
                                 alt={player.name}
                                 className="player-img"
                                 style={{ width: '80px', height: '80px' }}
+                                onError={(e) => { e.target.onerror = null; e.target.src = 'https://cdn-icons-png.flaticon.com/512/21/21104.png'; }}
                             />
                             <h3>{player.name}</h3>
                             <span className="position">{player.position}</span>

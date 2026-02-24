@@ -193,6 +193,7 @@ const BidderDashboard = () => {
                                         src={auctionPlayer.imageUrl || 'https://cdn-icons-png.flaticon.com/512/21/21104.png'}
                                         alt={auctionPlayer.name}
                                         style={{ width: '120px', height: '120px', borderRadius: '16px', objectFit: 'cover', border: '3px solid var(--highlight)' }}
+                                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://cdn-icons-png.flaticon.com/512/21/21104.png'; }}
                                     />
 
                                     <div style={{ flex: 1, minWidth: '200px' }}>
@@ -255,6 +256,7 @@ const BidderDashboard = () => {
                                                 src={player.imageUrl || 'https://cdn-icons-png.flaticon.com/512/21/21104.png'}
                                                 alt={player.name}
                                                 style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', marginBottom: '10px', display: 'block', margin: '0 auto 10px' }}
+                                                onError={(e) => { e.target.onerror = null; e.target.src = 'https://cdn-icons-png.flaticon.com/512/21/21104.png'; }}
                                             />
                                             <h4 style={{ color: 'var(--text-dark)', marginBottom: '5px', fontWeight: '700', fontSize: '0.95rem' }}>{player.name}</h4>
                                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>{player.position}</div>
@@ -279,7 +281,7 @@ const BidderDashboard = () => {
                             <div className="flex flex-col gap-3">
                                 {players.filter(p => p.status === 'available').slice(0, 5).map(player => (
                                     <div key={player._id} className="flex items-center p-3 bg-bg-card backdrop-blur-md border border-border rounded-xl shadow-sm hover:border-accent transition-colors">
-                                        <img src={player.imageUrl || 'https://cdn-icons-png.flaticon.com/512/21/21104.png'} className="w-10 h-10 rounded-full object-cover border border-border mr-3" alt="" />
+                                        <img src={player.imageUrl || 'https://cdn-icons-png.flaticon.com/512/21/21104.png'} className="w-10 h-10 rounded-full object-cover border border-border mr-3" alt="" onError={(e) => { e.target.onerror = null; e.target.src = 'https://cdn-icons-png.flaticon.com/512/21/21104.png'; }} />
                                         <div className="flex flex-col">
                                             <h4 className="font-bold text-text-dark text-sm">{player.name}</h4>
                                             <span className="text-xs font-semibold text-text-muted mt-0.5">{player.position}</span>

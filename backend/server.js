@@ -28,10 +28,11 @@ app.use(helmet({
             scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdnjs.cloudflare.com"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            imgSrc: ["'self'", "data:", "https://ui-avatars.com", "https://cdn-icons-png.flaticon.com", "https://images.unsplash.com"],
+            imgSrc: ["'self'", "data:", "blob:", "https://*", "http://*"],
             connectSrc: ["'self'", "ws:", "wss:", "https://*.onrender.com", "wss://*.onrender.com", "https://*.vercel.app", "http://localhost:*", "http://127.0.0.1:*"]
         }
-    }
+    },
+    crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
 // CORS Configuration

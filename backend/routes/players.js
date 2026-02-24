@@ -3,8 +3,29 @@ const Player = require('../models/Player');
 const { auth, isAdmin } = require('../middleware/auth');
 const User = require('../models/User');
 const TIER_LIMITS = require('../utils/tierLimits');
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 const router = express.Router();
+
+// Cloudinary Configuration
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'player_images',
+        allowed_formats: ['jpg', 'png', 'jpeg'],
+        transformation: [{ width: 500, height: 500, crop: 'limit' }]
+    },
+});
+
+const upload = multer({ storage: storage });
 
 // Get all players
 router.get('/', auth, async (req, res) => {
@@ -19,9 +40,18 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Add new player (Admin only)
-router.post('/', auth, isAdmin, async (req, res) => {
+router.post('/', auth, isAdmin, upload.single('image'), async (req, res) => {
     try {
-        const { name, position, basePrice, imageUrl } = req.body;
+        let { name, position, basePrice, imageUrl } = req.body;
+
+        if (req.file) {
+            imageUrl = req.file.path; // Cloudinary returns the full URL in .path or .secure_url
+        } else if (imageUrl && imageUrl.includes('drive.google.com')) {
+            const match = imageUrl.match(/id=([^&]+)/) || imageUrl.match(/file\/d\/([^\/]+)/);
+            if (match && match[1]) {
+                imageUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+            }
+        }
 
         // Check subscription tier limits
         const adminUser = await User.findById(req.user.userId);

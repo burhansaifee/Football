@@ -16,7 +16,7 @@ const AdminDashboard = () => {
     const [user] = useState(() => JSON.parse(localStorage.getItem('user')));
     const [players, setPlayers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [newPlayer, setNewPlayer] = useState({ name: '', position: '', basePrice: '', imageUrl: '' });
+    const [newPlayer, setNewPlayer] = useState({ name: '', position: '', basePrice: '', imageUrl: '', imageFile: null });
     const [newPrices, setNewPrices] = useState({});
     const [tournamentSport, setTournamentSport] = useState('Football');
     const [isOtherPosition, setIsOtherPosition] = useState(false);
@@ -83,10 +83,28 @@ const AdminDashboard = () => {
     const handleAddPlayer = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/players', newPlayer);
+            let payload = newPlayer;
+            let config = {};
+
+            if (newPlayer.imageFile) {
+                payload = new FormData();
+                payload.append('name', newPlayer.name);
+                payload.append('position', newPlayer.position);
+                payload.append('basePrice', newPlayer.basePrice);
+                if (newPlayer.imageUrl) payload.append('imageUrl', newPlayer.imageUrl);
+                payload.append('image', newPlayer.imageFile);
+                config = { headers: { 'Content-Type': 'multipart/form-data' } };
+            }
+
+            await api.post('/players', payload, config);
             toast.success('Player added', 'Player successfully added to the system');
-            setNewPlayer({ name: '', position: '', basePrice: '', imageUrl: '' });
+            setNewPlayer({ name: '', position: '', basePrice: '', imageUrl: '', imageFile: null });
             setIsOtherPosition(false);
+
+            // clear file input
+            const fileInput = document.getElementById('imageFileInput');
+            if (fileInput) fileInput.value = '';
+
             loadPlayers();
         } catch (error) {
             toast.error('Failed to add player', error.response?.data?.error || 'Unable to add player');
@@ -327,12 +345,38 @@ const AdminDashboard = () => {
                                         required
                                     />
 
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2 text-text-primary">
+                                            Upload Image (Optional)
+                                        </label>
+                                        <input
+                                            id="imageFileInput"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                if (e.target.files && e.target.files.length > 0) {
+                                                    setNewPlayer({ ...newPlayer, imageFile: e.target.files[0], imageUrl: '' });
+                                                }
+                                            }}
+                                            className="w-full px-3 py-2 border border-border rounded-md bg-bg-card text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
+                                        />
+                                    </div>
+
+                                    <div className="text-center text-sm text-text-muted my-2">OR</div>
+
                                     <Input
                                         label="Image URL (Optional)"
                                         type="url"
-                                        placeholder="Enter player image URL"
+                                        placeholder="Enter direct image URL (.png / .jpg)"
                                         value={newPlayer.imageUrl}
-                                        onChange={(e) => setNewPlayer({ ...newPlayer, imageUrl: e.target.value })}
+                                        onChange={(e) => {
+                                            setNewPlayer({ ...newPlayer, imageUrl: e.target.value });
+                                            if (e.target.value) {
+                                                const fileInput = document.getElementById('imageFileInput');
+                                                if (fileInput) fileInput.value = '';
+                                                setNewPlayer(prev => ({ ...prev, imageFile: null }));
+                                            }
+                                        }}
                                     />
 
                                     <Button type="submit" className="w-full">
@@ -393,6 +437,7 @@ const AdminDashboard = () => {
                                                                 src={player.imageUrl || 'https://cdn-icons-png.flaticon.com/512/21/21104.png'}
                                                                 alt={player.name}
                                                                 className="w-10 h-10 rounded-full object-cover border-2 border-border"
+                                                                onError={(e) => { e.target.onerror = null; e.target.src = 'https://cdn-icons-png.flaticon.com/512/21/21104.png'; }}
                                                             />
                                                             <div>
                                                                 <p className="font-medium text-text-primary">{player.name}</p>
@@ -402,9 +447,9 @@ const AdminDashboard = () => {
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${player.status === 'available' ? 'bg-green-100 text-green-800' :
-                                                                player.status === 'sold' ? 'bg-blue-100 text-blue-800' :
-                                                                    player.status === 'unsold' ? 'bg-yellow-100 text-yellow-800' :
-                                                                        'bg-purple-100 text-purple-800'
+                                                            player.status === 'sold' ? 'bg-blue-100 text-blue-800' :
+                                                                player.status === 'unsold' ? 'bg-yellow-100 text-yellow-800' :
+                                                                    'bg-purple-100 text-purple-800'
                                                             }`}>
                                                             {player.status}
                                                         </span>

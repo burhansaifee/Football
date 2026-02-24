@@ -64,7 +64,7 @@ const DashboardLayout = ({ children, user }) => {
               <Trophy className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-text-primary">Auction Pro</h1>
+              <h1 className="text-xl font-bold text-text-primary">Auctioner Deck</h1>
               <p className="text-xs text-text-muted">Admin Panel</p>
             </div>
           </div>

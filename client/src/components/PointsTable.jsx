@@ -59,7 +59,7 @@ const PointsTable = ({ refreshTrigger }) => {
                                     <td style={{ fontWeight: 'bold', width: '40px' }}>{index + 1}</td>
                                     <td>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: index === 0 ? 'bold' : 'normal' }}>
-                                            {index === 0 && <span style={{ color: '#fbbf24' }}>🏆</span>}
+                                            {index === 0 && <span style={{ color: '#fbbf24' }}></span>}
                                             {team.teamName}
                                         </div>
                                     </td>
